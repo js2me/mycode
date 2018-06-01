@@ -1,0 +1,26 @@
+{
+  "name": "mycode",
+  "version": "0.0.1",
+  "description": "",
+  "main": "mycode.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/acacode/mycode.git"
+  },
+  "keywords": [
+    "code"
+  ],
+  "author": "js2me",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/acacode/mycode/issues"
+  },
+  "homepage": "https://github.com/acacode/mycode#readme",
+  "dependencies": {
+    "commander": "^2.15.1",
+    "express": "^4.16.3"
+  }
+}
