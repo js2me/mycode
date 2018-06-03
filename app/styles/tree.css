@@ -1,0 +1,46 @@
+
+.tree {
+    background: #284056;
+    /* flex: 1 1 100%; */
+    height: 100%;
+    width: 20%;
+    max-width: 289px;
+    overflow: auto;
+    /* display: inline-flex; */
+}
+.tree-element {
+    cursor: pointer;
+    background: #29435a;
+    color: #9ba3ab;
+    padding: 5px 0 5px 10px;
+}
+.tree-element label {
+    pointer-events: none;
+}
+.sub-tree {
+    padding: 5px 0;
+}
+
+.tree-element:not(.opened) .sub-tree {
+    display: none;
+}
+
+/* width */
+.tree::-webkit-scrollbar {
+    width: 10px;
+}
+
+/* Track */
+.tree::-webkit-scrollbar-track {
+    background: #29435a; 
+}
+
+/* Handle */
+.tree::-webkit-scrollbar-thumb {
+    background: #afbdca; 
+}
+
+/* Handle on hover */
+.tree::-webkit-scrollbar-thumb:hover {
+    background: #8badce; 
+}
