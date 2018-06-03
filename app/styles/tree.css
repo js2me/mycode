@@ -1,24 +1,27 @@
 
 .tree {
-    background: #284056;
-    /* flex: 1 1 100%; */
     height: 100%;
-    width: 20%;
-    max-width: 289px;
+    width: 17%;
+    min-width: 223px;
     overflow: auto;
-    /* display: inline-flex; */
+    background: #252526;
 }
 .tree-element {
     cursor: pointer;
-    background: #29435a;
-    color: #9ba3ab;
-    padding: 5px 0 5px 10px;
+    color: #cccccc;
+    padding: 1px 0 1px 14px;
+    user-select: none;
+    font-size: 13px;
 }
 .tree-element label {
     pointer-events: none;
 }
-.sub-tree {
-    padding: 5px 0;
+.tree-element.opened {
+    /* background: #292423; */
+}
+
+.sub-tree .tree-element {
+    /* background: #292423; */
 }
 
 .tree-element:not(.opened) .sub-tree {
@@ -32,15 +35,19 @@
 
 /* Track */
 .tree::-webkit-scrollbar-track {
-    background: #29435a; 
+    background: #252526; 
 }
 
 /* Handle */
 .tree::-webkit-scrollbar-thumb {
-    background: #afbdca; 
+    background: rgba(84, 84, 84, 0);
+}
+/* Handle */
+.tree:hover::-webkit-scrollbar-thumb {
+    background: rgb(84, 84, 84); 
 }
 
 /* Handle on hover */
 .tree::-webkit-scrollbar-thumb:hover {
-    background: #8badce; 
+    background: rgb(113, 113, 113);
 }

@@ -28,15 +28,43 @@ const buildPath = (fileName, paths) =>
     ).result.join('/')
   )
 
-function openPath([id, file, paths, childPaths]) { //eslint-disable-line
+function getPathRef(paths) {
+  return _.reduce(
+    paths,
+    (result, pathId, nest) => (nest ? result[3][pathId] : result[pathId]),
+    projectTree
+  )
+}
+
+function openPath([id, file, paths]) { //eslint-disable-line
   console.log(file, paths, buildPath(file, paths))
   return new Promise((resolve, reject) => {
-    fs.readdir(buildPath(file, paths), (err, files) => {
-      if (err) resolve([])
-      files.forEach((file, id) => {
-        childPaths.push([id, file, [...paths, id], []])
-      })
-      resolve(childPaths)
+    const ref = getPathRef(paths)
+    if ((ref[4] && ref[3]) || ref[3].length) {
+      return resolve(ref[3])
+    }
+    const pathToFile = buildPath(file, paths)
+    fs.lstat(pathToFile, (err, stats) => {
+      if (err) throw new Error(err)
+      const isDirectory = (ref[4] = stats.isDirectory())
+      if (isDirectory) {
+        fs.readdir(pathToFile, (err, files) => {
+          if (err) resolve([])
+          let childPaths = []
+          files.forEach((file, id) => {
+            childPaths.push([id, file, [...paths, id], []])
+          })
+          resolve(childPaths)
+          ref[3] = childPaths
+        })
+      } else {
+        fs.readFile(pathToFile, 'utf8', (err, fileData) => {
+          if (err) throw new Error(err)
+          console.log(typeof fileData)
+          resolve(fileData)
+          ref[3] = fileData
+        })
+      }
     })
   })
 }
@@ -50,7 +78,12 @@ function launchServer(port) {
   )
   app.get('/project-tree', (req, res) => res.send(projectTree))
   app.post('/sub-tree', (req, res) =>
-    openPath(req.body).then(data => res.send(data))
+    openPath(req.body).then(data =>
+      res.send({
+        name: req.body[1],
+        data,
+      })
+    )
   )
   const server = http.createServer(app)
   server.listen(port, '0.0.0.0', () => {

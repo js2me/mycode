@@ -1,3 +1,9 @@
+/* 
+@font-face {
+    font-family: "FiraCode";
+    src:url("/fonts/Harlow_Solid_Italic.ttf");
+} */
+
 .wrapper {
     box-sizing: border-box;
     width: 100%;
@@ -12,15 +18,24 @@ body, html {
     margin: 0;
     box-sizing: border-box;
     height: 100%;
-    font-family: Roboto;
+    font-family: "FiraCode", Roboto;
     font-size: 15px;
 }
 
 header {
     width: 100%;
     height: 40px;
-    background: #3a6082;
+    background: #211f1e;
     flex: none;
     position: absolute;
     top: 0;
+}
+
+body .ace_editor {
+    position: relative;
+    overflow: hidden;
+    font: 16px/normal monospace;
+    direction: ltr;
+    text-align: left;
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
 }

@@ -1,7 +1,8 @@
 
 .editor {
-    background: #1c2e3e;
+    background: #2d2d2d;
     height: 100%;
     width: 100%;
+    overflow: auto;
     /* display: inline-flex; */
 }
