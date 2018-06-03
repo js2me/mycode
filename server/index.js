@@ -72,9 +72,9 @@ function openPath([id, file, paths]) { //eslint-disable-line
 function launchServer(port) {
   const app = express()
   app.use(bodyParser.json())
-  app.use(express.static(path.resolve(__dirname, '../app')))
+  app.use(express.static(path.resolve(__dirname, '../client')))
   app.get('/', (req, res) =>
-    res.sendFile(path.resolve(__dirname, '../app/index.html'))
+    res.sendFile(path.resolve(__dirname, '../client/index.html'))
   )
   app.get('/project-tree', (req, res) => res.send(projectTree))
   app.post('/sub-tree', (req, res) =>
