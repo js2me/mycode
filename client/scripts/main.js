@@ -10,32 +10,55 @@ var editor
     // }, 0)
     // editor.container.classList.add('ace_dark', 'vs_code')
     var tree = document.querySelector('.tree')
+    setTimeout(function() {
+      var theme = document.querySelector(
+        '[src="http://localhost:7070/libs/ace_codeeditor/theme-vscode.js"]'
+      )
+      var lol = document.getElementById('vs_code')
+      if (theme) {
+        theme.parentElement.removeChild(theme)
+      }
+      if (lol) {
+        lol.parentElement.removeChild(lol)
+      }
+    }, 200)
     addDynamicEventListener(
       document.body,
       'click',
       '.tree-element',
       handleTreeElementClick
     )
-    response.data.forEach(function(element) {
+    sortPathsData(response.data).forEach(function(element) {
       createTreeElement(element, tree)
     })
   })
 })()
 
+function sortPathsData(pathsData) {
+  return _.sortBy(pathsData, function(element) {
+    return !element.isDir
+  })
+}
+
 function createTreeElement(data, tree) {
   var treeEl = document.createElement('div')
   treeEl.className = 'tree-element'
-  treeEl.setAttribute('data', JSON.stringify([data[0], data[1], data[2]]))
+  treeEl.setAttribute(
+    'data',
+    JSON.stringify({ file: data.file, paths: data.paths, isDir: data.isDir })
+  )
   treeEl.innerHTML =
-    '<label>' + data[1] + '</label>' + '<div class="sub-tree"></div>'
+    '<label>' + data.file + '</label>' + '<div class="sub-tree"></div>'
   tree.appendChild(treeEl)
 }
 
 const fileFormats = {
+  html: 'html',
   js: 'javascript',
+  json: 'json',
   jsx: 'javascript',
-  ts: 'typescript',
   md: 'markdown',
+  ts: 'typescript',
   yml: 'yaml',
 }
 
@@ -44,21 +67,20 @@ function handleTreeElementClick(e) {
   e.preventDefault()
   var treeElement = e.target
   if (!treeElement.classList.contains('opened')) {
-    treeElement.classList.add('opened')
     if (!treeElement.children[1].children.length) {
       var data = JSON.parse(e.target.getAttribute('data'))
       axios.post('/sub-tree', data).then(function(response) {
         var file = response.data
         if (file.data instanceof Array) {
-          file.data.forEach(function(element) {
+          treeElement.classList.add('opened')
+          sortPathsData(file.data).forEach(function(element) {
             createTreeElement(element, treeElement.children[1])
           })
         } else {
-          var format = _.last(file.name.split('.'))
-          if (fileFormats[format]) {
-            var Mode = ace.require('ace/mode/' + fileFormats[format]).Mode
-            editor.session.setMode(new Mode())
-          }
+          var format = _.last(data.file.split('.'))
+          var Mode = ace.require('ace/mode/' + (fileFormats[format] || 'text'))
+            .Mode
+          editor.session.setMode(new Mode())
           editor.setValue(file.data, -1)
         }
       })

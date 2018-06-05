@@ -5,82 +5,97 @@ const fs = require('fs')
 const os = require('os')
 const http = require('http')
 const opn = require('opn')
-const path = require('path')
+const pathResolve = require('path').resolve
 
 const projectFolder = process.cwd()
 let projectTree = []
 
 const buildPath = (fileName, paths) =>
-  path.resolve(
+  pathResolve(
     projectFolder,
-    _.reduce(
-      paths,
-      (obj, pathId, nest) => {
-        let tree = nest ? obj.tree[3][pathId] : obj.tree[pathId]
-        obj.result.push(tree[1])
-        obj.tree = tree
-        return obj
-      },
-      {
-        tree: projectTree,
-        result: [],
-      }
-    ).result.join('/')
+    paths.length === 1
+      ? fileName
+      : _.reduce(
+          paths,
+          (obj, pathId, depth) => {
+            let { file, content } = obj.tree[pathId]
+            return {
+              tree: content,
+              result: [...obj.result, file],
+            }
+          },
+          {
+            tree: projectTree,
+            result: [],
+          }
+        ).result.join('/')
   )
 
-function getPathRef(paths) {
-  return _.reduce(
-    paths,
-    (result, pathId, nest) => (nest ? result[3][pathId] : result[pathId]),
-    projectTree
-  )
+function getElementRef(paths) {
+  return projectTree.length
+    ? _.reduce(
+        paths,
+        (element, pathId, depth) =>
+          depth ? element.content[pathId] : element[pathId],
+        projectTree
+      )
+    : {}
 }
 
-function openPath([id, file, paths]) { //eslint-disable-line
-  console.log(file, paths, buildPath(file, paths))
-  return new Promise((resolve, reject) => {
-    const ref = getPathRef(paths)
-    if ((ref[4] && ref[3]) || ref[3].length) {
-      return resolve(ref[3])
+const openPath = ({ file, paths }) =>
+  new Promise((resolve, reject) => {
+    const pathName = file
+    console.log(paths)
+    const ref = getElementRef(paths)
+    if (ref.isDir ? ref.content.length : ref.content) {
+      return resolve(ref.content)
     }
-    const pathToFile = buildPath(file, paths)
-    fs.lstat(pathToFile, (err, stats) => {
-      if (err) throw new Error(err)
-      const isDirectory = (ref[4] = stats.isDirectory())
+    const pathToElement = buildPath(pathName, paths)
+    fs.lstat(pathToElement, (err, stats) => {
+      if (err) {
+        console.error(err)
+        return resolve([])
+      }
+      console.log(stats.isDirectory())
+      const isDirectory = (ref.isDir = stats.isDirectory())
       if (isDirectory) {
-        fs.readdir(pathToFile, (err, files) => {
-          if (err) resolve([])
-          let childPaths = []
-          files.forEach((file, id) => {
-            childPaths.push([id, file, [...paths, id], []])
-          })
-          resolve(childPaths)
-          ref[3] = childPaths
+        fs.readdir(pathToElement, (err, content) => {
+          if (err) return resolve([])
+          resolve(
+            (ref.content = content.map((file, id) => {
+              const isDir = fs
+                .lstatSync(pathResolve(buildPath(pathName, paths), file))
+                .isDirectory()
+              return {
+                file,
+                paths: [...paths, id],
+                content: isDir ? [] : null,
+                isDir,
+              }
+            }))
+          )
         })
       } else {
-        fs.readFile(pathToFile, 'utf8', (err, fileData) => {
-          if (err) throw new Error(err)
-          console.log(typeof fileData)
-          resolve(fileData)
-          ref[3] = fileData
+        fs.readFile(pathToElement, 'utf8', (err, fileData) => {
+          if (err) {
+            console.error(err)
+            return resolve('')
+          }
+          resolve((ref.content = fileData))
         })
       }
     })
   })
-}
-
 function launchServer(port) {
   const app = express()
+  const clientPath = pathResolve(__dirname, '../client')
   app.use(bodyParser.json())
-  app.use(express.static(path.resolve(__dirname, '../client')))
-  app.get('/', (req, res) =>
-    res.sendFile(path.resolve(__dirname, '../client/index.html'))
-  )
+  app.use(express.static(clientPath))
+  app.get('/', (_q, r) => r.sendFile(pathResolve(clientPath, '/index.html')))
   app.get('/project-tree', (req, res) => res.send(projectTree))
   app.post('/sub-tree', (req, res) =>
     openPath(req.body).then(data =>
       res.send({
-        name: req.body[1],
         data,
       })
     )
@@ -88,22 +103,12 @@ function launchServer(port) {
   const server = http.createServer(app)
   server.listen(port, '0.0.0.0', () => {
     console.log('Server started on port ' + port)
-    try {
-      opn('http://localhost:' + port, {
-        app: os.platform() === 'win32' ? 'chrome' : 'google-chrome',
-      })
-    } catch (e) {
-      console.error('Cannot open Google Chrome browser')
-    }
   })
 }
 
-function setup(args) {
-  fs.readdir(projectFolder, (err, files) => {
-    if (err) throw new Error(err)
-    files.forEach((file, id) => projectTree.push([id, file, [id], []]))
+module.exports = args =>
+  openPath({ file: '.', paths: [] }).then(tree => {
+    projectTree = [...tree]
     const port = 7070
     launchServer(port)
   })
-}
-module.exports = setup

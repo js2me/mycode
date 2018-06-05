@@ -6,3 +6,30 @@
     overflow: auto;
     /* display: inline-flex; */
 }
+
+
+
+
+@media screen and (-webkit-min-device-pixel-ratio:0) { 
+    .ace_scrollbar {
+        background-color: inherit;
+        -webkit-background-clip: text;
+        /* uncomment following line to see the trick in actions */
+        /* -webkit-text-fill-color: transparent; */
+        transition: background-color .5s linear;
+    }
+    .editor:hover .ace_scrollbar {
+       transition: background-color 129ms cubic-bezier(0.22, 0.61, 0.36, 1) !important;
+       background-color: #3a3939;
+    }
+    .ace_scrollbar::-webkit-scrollbar {
+        width: 15px;
+    }
+    .ace_scrollbar::-webkit-scrollbar-track {
+        display: none;
+    }
+    .ace_scrollbar::-webkit-scrollbar-thumb {
+        border-radius: 0;
+        background-color: inherit;
+    }
+  }
